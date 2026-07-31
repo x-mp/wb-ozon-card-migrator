@@ -4,6 +4,7 @@ import hashlib
 import io
 import json
 import os
+import secrets
 import urllib.error
 import urllib.request
 from datetime import datetime, timezone
@@ -157,3 +158,101 @@ class OzonMediaPreparer:
         if len(body) > 50 * 1024 * 1024:
             raise RuntimeError("Image exceeds 50 MiB local safety limit")
         return body
+
+
+class AutoSupplyMediaUploader:
+    """Upload prepared JPG/PNG files to an authenticated AutoSupply gateway."""
+
+    def __init__(self, endpoint: str, token: str, *, timeout: float = 30) -> None:
+        if not endpoint.startswith("https://"):
+            raise ValueError("AutoSupply media endpoint must use HTTPS")
+        if not token.strip():
+            raise RuntimeError("AutoSupply media token is empty")
+        self.endpoint = endpoint
+        self.token = token.strip()
+        self.timeout = timeout
+
+    @classmethod
+    def from_environment(cls, endpoint: str, *, timeout: float = 30):
+        token = os.getenv("AUTOSUPPLY_MEDIA_TOKEN", "").strip()
+        token_file = os.getenv("AUTOSUPPLY_MEDIA_TOKEN_FILE", "").strip()
+        if not token and token_file:
+            token = Path(token_file).read_text(encoding="utf-8").strip()
+        if not token:
+            raise RuntimeError(
+                "Configure AUTOSUPPLY_MEDIA_TOKEN or AUTOSUPPLY_MEDIA_TOKEN_FILE"
+            )
+        return cls(endpoint, token, timeout=timeout)
+
+    def upload_manifest(self, manifest_path: Path, output_path: Path) -> dict[str, Any]:
+        if output_path.exists():
+            raise FileExistsError(f"Refusing to overwrite {output_path}")
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        uploaded: list[dict[str, Any]] = []
+        for item in manifest.get("items") or []:
+            path = Path(str(item.get("local_file") or ""))
+            content = path.read_bytes()
+            digest = hashlib.sha256(content).hexdigest()
+            if digest != item.get("sha256"):
+                raise ValueError(f"Prepared media checksum changed: {path}")
+            response = self._upload(path.name, content)
+            if response.get("sha256") != digest:
+                raise RuntimeError(f"Gateway checksum mismatch for {path}")
+            public_url = str(response.get("public_url") or "")
+            if not public_url.startswith("https://"):
+                raise RuntimeError(f"Gateway returned a non-HTTPS URL for {path}")
+            updated = dict(item)
+            updated["ozon_public_url"] = public_url
+            updated["hosting"] = {
+                "service": "autosupplybot",
+                "sha256": digest,
+                "created": bool(response.get("created")),
+            }
+            uploaded.append(updated)
+        if not uploaded:
+            raise ValueError("Media manifest has no items")
+        result = dict(manifest)
+        result["items"] = uploaded
+        result["public_base_url"] = None
+        result["upload_endpoint"] = self.endpoint
+        result["uploaded_at"] = datetime.now(timezone.utc).isoformat()
+        result["ready_for_ozon"] = all(item.get("ozon_public_url") for item in uploaded)
+        result["note"] = "Files uploaded through the authenticated AutoSupply media gateway."
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_text(
+            json.dumps(result, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        result["manifest_file"] = str(output_path)
+        return result
+
+    def _upload(self, filename: str, content: bytes) -> dict[str, Any]:
+        boundary = f"----autosupply-{secrets.token_hex(16)}"
+        safe_filename = Path(filename).name.replace('"', "")
+        body = (
+            f"--{boundary}\r\n"
+            f'Content-Disposition: form-data; name="file"; filename="{safe_filename}"\r\n'
+            "Content-Type: image/jpeg\r\n\r\n"
+        ).encode("ascii") + content + f"\r\n--{boundary}--\r\n".encode("ascii")
+        request = urllib.request.Request(
+            self.endpoint,
+            data=body,
+            headers={
+                "Accept": "application/json",
+                "Authorization": f"Bearer {self.token}",
+                "Content-Type": f"multipart/form-data; boundary={boundary}",
+                "User-Agent": os.getenv(
+                    "OZON_USER_AGENT", "wb-assistant-ozon-migration/0.1"
+                ),
+            },
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=self.timeout) as response:
+                payload = response.read(1024 * 1024)
+        except urllib.error.HTTPError as exc:
+            detail = exc.read(4096).decode("utf-8", errors="replace")
+            raise RuntimeError(
+                f"AutoSupply media upload failed with HTTP {exc.code}: {detail[:500]}"
+            ) from exc
+        return json.loads(payload.decode("utf-8"))

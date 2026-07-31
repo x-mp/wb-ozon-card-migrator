@@ -436,6 +436,8 @@ class OzonSeoAdapter:
         original_name = str(product["content"].get("name") or "")
         clean_name, removed_name = self.clean(original_name)
         brand = _plain_text(product["identity"].get("brand"))
+        if _norm(brand) in {"нет бренда", "без бренда", "no brand"}:
+            brand = ""
         if target_type_name and _norm(target_type_name) not in _norm(clean_name):
             # Add the marketplace product type only when it is not already
             # semantically present. All other words come from the source.

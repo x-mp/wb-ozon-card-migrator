@@ -226,6 +226,18 @@ class OzonMigrationTests(unittest.TestCase):
         self.assertIn("Материал", seo["description"])
         self.assertFalse(seo["report"]["invented_claims"])
 
+    def test_seo_does_not_prefix_no_brand_sentinel(self) -> None:
+        product = {
+            "identity": {"brand": "Нет бренда"},
+            "content": {
+                "name": "Печатный скетчбук для рисования",
+                "description": "Бумажное изделие для эскизов.",
+                "attributes": [],
+            },
+        }
+        seo = OzonSeoAdapter({}).adapt(product, "Скетчбук")
+        self.assertEqual(seo["name"], "Печатный скетчбук для рисования")
+
     def test_build_approve_and_verify_plan(self) -> None:
         product = {
             "schema_version": 1,

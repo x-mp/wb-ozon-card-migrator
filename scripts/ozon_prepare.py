@@ -8,6 +8,7 @@ ALLOWED = {
     "extract-wb",
     "categories-suggest",
     "media-prepare",
+    "media-upload-autosupply",
     "prepare",
     "approve",
 }
@@ -19,4 +20,3 @@ if __name__ == "__main__":
             "Local preparation commands: " + ", ".join(sorted(ALLOWED))
         )
     raise SystemExit(main(sys.argv[1:]))
-
