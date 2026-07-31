@@ -1,30 +1,42 @@
-# Architecture
+# Архитектура миграции
 
 ```text
-WB official API          Ozon read API            Local preparation
-       |                       |                          |
-       +---- immutable raw ----+---- dictionaries -------+
-                                                          |
-                                                   canonical card
-                                                          |
-                                                   validation plan
-                                                          |
-                                               explicit approval file
-                                                          |
-                                               Ozon writer (disabled)
-                                                          |
-                                                async task status check
+Официальный API WB       Чтение Ozon API        Локальная подготовка
+        |                       |                       |
+        +-- неизменяемые данные +-- снимки справочников +
+                                                        |
+                                              каноническая карточка
+                                                        |
+                                                   план проверки
+                                                        |
+                                             отдельное подтверждение
+                                                        |
+                                          запись в Ozon (заблокирована)
+                                                        |
+                                             проверка задачи импорта
 ```
 
-WB is read-only. Ozon discovery and Ozon upload are separate commands. Merely
-adding an API key never enables a write: the uploader also requires a valid
-plan, an approval tied to the plan hash, an exact confirmation string, and the
-temporary `OZON_ENABLE_WRITES` guard.
+## Разделение ответственности
 
-Every marketplace response is stored under a new run directory with request
-time, source, entity, safe parameters, HTTP status, content type, checksum, and
-documentation URL. Existing raw responses are never overwritten.
+WB используется только как источник данных. Получение справочников Ozon и
+загрузка товара выполняются разными командами. Само наличие API-ключа не
+включает запись: загрузчику также нужны валидный план, подтверждение,
+привязанное к хешу плана, точная строка подтверждения и временная переменная
+`OZON_ENABLE_WRITES`.
 
-The first production run is limited to one card. Price/stock management,
-deletion, archiving, and bulk uploads are intentionally outside the first
-pilot.
+## Хранение данных
+
+Каждый ответ маркетплейса сохраняется в отдельном каталоге запуска. Вместе с
+ответом записываются время запроса, источник, сущность, безопасные параметры,
+HTTP-статус, тип содержимого, контрольная сумма и ссылка на документацию.
+Существующие исходные ответы никогда не перезаписываются.
+
+Каталоги `data/raw/`, `data/normalized/`, `data/marts/` и `data/tmp/` содержат
+данные конкретного продавца и исключены из Git.
+
+## Ограничения первой версии
+
+Первый рабочий запуск ограничен одной карточкой. Управление остатками,
+массовая миграция, удаление и архивирование товаров намеренно не включены в
+первый пилот. Цена передаётся только как обязательная часть импорта карточки;
+запуск продаж и остатки настраиваются отдельно.

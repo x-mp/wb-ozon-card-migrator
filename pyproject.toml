@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "wb-ozon-card-migrator"
 version = "0.1.0"
-description = "Safe, auditable migration of seller-owned product cards from Wildberries to Ozon"
+description = "Безопасная и проверяемая миграция карточек продавца из Wildberries в Ozon"
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "All rights reserved"}

@@ -9,6 +9,7 @@ from wb_assistant.ozon_migration import (
     build_migration_plan,
     extract_wb_products,
     flatten_ozon_categories,
+    map_ozon_attributes,
     suggest_ozon_categories,
     verify_approval,
 )
@@ -70,6 +71,35 @@ def _schema(path: Path) -> OzonOpenApi:
 
 
 class OzonMigrationTests(unittest.TestCase):
+    def test_false_boolean_override_is_preserved(self) -> None:
+        attributes, report, errors, warnings = map_ozon_attributes(
+            {
+                "identity": {},
+                "content": {"attributes": []},
+                "compliance": {},
+            },
+            {
+                "attributes": [
+                    {
+                        "id": 23536,
+                        "name": "Нужен код маркировки",
+                        "type": "Boolean",
+                        "is_required": True,
+                        "dictionary_id": 0,
+                        "max_value_count": 1,
+                    }
+                ],
+                "dictionaries": {},
+            },
+            {"name": "Тест", "description": "Тест"},
+            {"aliases": {}},
+            {"23536": False},
+        )
+        self.assertEqual(errors, [])
+        self.assertEqual(warnings, [])
+        self.assertEqual(attributes[0]["values"], [{"value": "false"}])
+        self.assertEqual(report[0]["source_name"], "manual_override")
+
     def test_extracts_full_wb_card(self) -> None:
         source = {
             "cards": [

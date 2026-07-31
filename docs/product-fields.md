@@ -1,50 +1,54 @@
-# Brand, VAT, country of manufacture, and TN VED
+# Бренд, НДС, страна производства и ТН ВЭД
 
-These fields describe different facts and must not be inferred from each
-other.
+Это четыре независимых поля. Одно нельзя автоматически определять из другого.
 
-## Brand
+## Бренд
 
-Use Ozon's dictionary value `Нет бренда` only when the product and packaging
-really carry no brand. A brand present in the source card must not be removed
-automatically. Confirm the product, packaging, and the seller's right to use
-the brand.
+Значение справочника Ozon `Нет бренда` допустимо только тогда, когда на самом
+товаре и упаковке действительно нет бренда. Если исходная карточка WB содержит
+бренд, скрипт не должен удалять его автоматически. Проверьте товар, упаковку и
+право продавца использовать это обозначение.
 
-## VAT
+## НДС
 
-VAT belongs to the seller's tax treatment, not to the product's country of
-origin. In an override, `commercial.vat` accepts the values currently supported
-by the importer:
+НДС определяется налоговым положением продавца, а не страной производства
+товара. В файле переопределений поле `commercial.vat` принимает поддерживаемые
+импортёром значения:
 
-- `"0"` — without VAT;
-- `"0.05"`, `"0.07"`, `"0.1"`, `"0.2"`, or `"0.22"` — applicable rate.
+- `"0"` — без НДС;
+- `"0.05"`, `"0.07"`, `"0.1"`, `"0.2"` или `"0.22"` — применимая ставка.
 
-The seller or accountant must confirm the value. Do not copy it from another
-cabinet or infer it from the tax regime name alone.
+Значение должен подтвердить владелец кабинета или бухгалтер. Нельзя копировать
+НДС из другого кабинета или определять его только по названию налогового
+режима.
 
-## Country of manufacture
+## Страна производства
 
-Enter the country printed on the product or its packaging and supported by
-supplier/manufacturer documents. A Russian manufacturer can be selected as
-`Россия`; this does not remove a category's TN VED requirement.
+Укажите страну, напечатанную на товаре или упаковке и подтверждаемую
+документами производителя/поставщика. Для российского производства можно
+выбрать `Россия`, но это не отменяет обязательность ТН ВЭД, если Ozon требует
+его в выбранной категории.
 
-## TN VED EAEU
+## ТН ВЭД ЕАЭС
 
-TN VED is a ten-digit classification of the product type. It is not a flag
-that means “imported” or “exported”. If Ozon marks this category attribute as
-required, the value `нет` cannot be substituted.
+ТН ВЭД — десятизначный классификационный код вида товара. Это не отметка
+«импортный» или «экспортный». Если Ozon помечает характеристику категории как
+обязательную, заменить код значением `нет` нельзя.
 
-Use the code from the supplier/manufacturer documents, declaration or
-certificate when present. For a mixed kit, classification can depend on the
-components, material, purpose, and the component that gives the set its
-essential character. If the documents contain no code, obtain a written
-classification from the manufacturer, a customs representative, or the
-customs authority. The migrator deliberately blocks upload instead of guessing.
+Используйте код из документов производителя или поставщика, декларации либо
+сертификата. Для смешанного набора классификация может зависеть от состава,
+материала, назначения и компонента, который определяет основное свойство
+набора.
 
-Before approving a plan, verify:
+Если в документах кода нет, запросите письменное подтверждение у
+производителя, таможенного представителя или таможенного органа. Мигратор
+намеренно блокирует загрузку вместо подбора кода по догадке.
 
-1. The product type and Ozon category are correct.
-2. The brand value matches the product and packaging.
-3. The country of manufacture matches the label and documents.
-4. The seller's VAT treatment is confirmed.
-5. The exact TN VED value exists in Ozon's current category dictionary.
+## Проверка перед подтверждением плана
+
+1. Тип товара и категория Ozon выбраны правильно.
+2. Бренд совпадает с товаром и упаковкой.
+3. Страна производства совпадает с маркировкой и документами.
+4. НДС подтверждён для конкретного кабинета продавца.
+5. Точный код ТН ВЭД присутствует в актуальном справочнике выбранной категории
+   Ozon.

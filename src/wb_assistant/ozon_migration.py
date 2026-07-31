@@ -22,6 +22,8 @@ def _norm(value: Any) -> str:
 
 
 def _plain_text(value: Any) -> str:
+    if isinstance(value, bool):
+        return "true" if value else "false"
     text = html.unescape(str(value or ""))
     text = re.sub(r"<[^>]+>", " ", text)
     return re.sub(r"\s+", " ", text).strip()

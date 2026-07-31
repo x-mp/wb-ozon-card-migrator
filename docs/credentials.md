@@ -1,17 +1,20 @@
-# Credentials and permissions
+# Получение ключей и настройка прав
 
-Keep all real values in a local `.env`; never commit that file.
+Все реальные значения храните только в локальном `.env`. Никогда не добавляйте
+этот файл в Git и не отправляйте ключи в issue, чат или логи CI.
 
-## Wildberries
+## 1. Токен Wildberries
 
-Create a separate token in the seller cabinet's API/integration settings.
-Grant only:
+Создайте отдельный токен в настройках API/интеграций кабинета продавца WB.
+Для миграции достаточно минимальных прав:
 
-- **Content** to read the complete card;
-- **Prices and discounts** if the migration must read the current price.
+- **Контент** — чтение полной карточки товара;
+- **Цены и скидки** — только если нужно получить текущую цену из WB.
 
-WB is only a source in this project. Do not grant card, price, or stock write
-permissions.
+WB в проекте является только источником. Не выдавайте права изменения
+карточек, цен или остатков.
+
+Добавьте токен в локальный `.env`:
 
 ```dotenv
 WB_API_TOKEN=
@@ -19,17 +22,31 @@ WB_API_AUTH_SCHEME=
 WB_ACCOUNT_ID=main
 ```
 
-WB expects the token itself in the `Authorization` header, so the scheme is
-normally empty.
+WB принимает сам токен в заголовке `Authorization`, поэтому
+`WB_API_AUTH_SCHEME` обычно оставляют пустым.
 
-## Ozon Seller API
+Проверка чтения карточки:
 
-For one seller's own cabinet, use the Seller `Client ID` and an `Api-Key`;
-OAuth is unnecessary. Both values must come from the same Ozon Seller cabinet.
-The Client ID is the cabinet identifier; the API key is secret.
+```bash
+PYTHONPATH=src python scripts/wb_cards.py \
+  --nm-id WB_NM_ID \
+  --account main \
+  --output data/marts/wb-card.json
+```
 
-Create a read-only key first. It must allow role inspection, category trees,
-category attributes and dictionaries, product lookup, and import task status.
+## 2. Ключ собственного кабинета Ozon
+
+Для собственного кабинета продавца нужен Seller `Client ID + Api-Key`. OAuth
+для этого не требуется.
+
+1. Войдите в Ozon Seller владельцем или администратором.
+2. Откройте настройки Seller API/API-ключей.
+3. Скопируйте числовой `Client ID` кабинета.
+4. Создайте отдельный API-ключ для миграции.
+5. Сначала выдайте ключу только права чтения категорий, характеристик, товаров,
+   ролей и статуса задач импорта.
+
+Оба значения должны быть из одного кабинета:
 
 ```dotenv
 OZON_CLIENT_ID=
@@ -37,27 +54,53 @@ OZON_API_KEY=
 OZON_ACCOUNT_ID=main
 ```
 
-Validate without writing:
+`Client ID` идентифицирует кабинет и сам по себе не является секретом.
+`Api-Key` является секретом.
+
+Проверьте ключ без изменения данных:
 
 ```bash
 PYTHONPATH=src python scripts/ozon_read.py auth-check
 ```
 
-For the final upload, create or switch to a separate key that also allows
-`POST /v3/product/import`. Run `auth-check` again; `can_import_products` must be
-`true`.
+Команда показывает только безопасную информацию о роли. Значение ключа в
+вывод не попадает.
 
-OAuth is for an application connected to multiple or third-party seller
-companies. An OAuth application `client_id/client_secret` is not the same as a
-Seller `Client ID/Api-Key`.
+## 3. Отдельный ключ Ozon для загрузки
 
-Ozon Performance advertising credentials are also a different API. A client
-identifier ending in `@advertising.performance.ozon.ru` together with a
-`Client Secret` is used for advertising automation; it cannot authorize Seller
-API product import and must not be put into `OZON_CLIENT_ID/OZON_API_KEY`.
+Для финальной загрузки рекомендуется создать отдельный ключ с минимальным
+правом вызова `POST /v3/product/import`. Ему также нужны методы проверки задачи
+импорта и чтения результата товара.
 
-## Images
+После переключения ключа снова выполните `auth-check`. Перед загрузкой поле
+`can_import_products` должно иметь значение `true`.
 
-Ozon imports images from public HTTPS JPG/PNG URLs. The project downloads WB
-WebP images, verifies them, and converts them to JPEG, but you must place the
-converted files in your own public S3/CDN/object storage.
+Наличие ключа с правом записи недостаточно: скрипт дополнительно проверяет
+план, его хеш, файл подтверждения, точную строку команды и временную переменную
+защиты записи.
+
+## 4. Какие ключи не подходят
+
+- OAuth `client_id/client_secret` предназначен для приложения, которое
+  подключается к нескольким или чужим кабинетам. Это не Seller
+  `Client ID/Api-Key`.
+- Пара Ozon Performance для рекламного API, где идентификатор оканчивается на
+  `@advertising.performance.ozon.ru`, не даёт права создавать карточки через
+  Seller API. Не помещайте её в `OZON_CLIENT_ID/OZON_API_KEY`.
+
+## 5. Публичные изображения
+
+Ozon получает изображения по общедоступным HTTPS-ссылкам на JPG или PNG.
+Проект скачивает WebP с WB, проверяет файл и преобразует его в JPEG. После
+этого вы должны загрузить готовые файлы в собственное S3/CDN/объектное
+хранилище. Ссылки обязаны открываться без cookies, VPN и авторизации.
+
+## 6. Если ключ раскрыт
+
+1. Немедленно отзовите его в соответствующем кабинете.
+2. Создайте новый ключ с минимальными правами.
+3. Обновите только локальный `.env`.
+4. Проверьте историю Git и логи CI.
+
+Удаление секрета следующим коммитом не делает раскрытый ключ безопасным — его
+обязательно нужно отозвать.

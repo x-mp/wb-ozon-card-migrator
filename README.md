@@ -1,28 +1,35 @@
-# WB → Ozon card migrator
+# Миграция карточек Wildberries → Ozon
 
-A safe Python workflow for moving a seller-owned Wildberries card to the
-seller's own Ozon cabinet through official APIs.
+Безопасный набор Python-скриптов для переноса принадлежащей продавцу карточки
+товара из кабинета Wildberries в собственный кабинет Ozon через официальные
+API маркетплейсов.
 
-The project reads and archives the WB source card, retrieves the current Ozon
-category schema, adapts fields and media, builds a dry-run plan, requires
-explicit approval, uploads one card, and polls the asynchronous Ozon task.
-Secrets, seller responses, product data, and media are never part of the
-repository.
+Проект получает и архивирует исходную карточку WB, загружает актуальную схему
+категории Ozon, адаптирует поля и изображения, формирует план предварительной
+проверки, требует отдельного подтверждения, отправляет одну карточку и
+проверяет асинхронную задачу Ozon. Секреты, ответы кабинетов, реальные карточки
+и изображения в репозиторий не входят.
 
-## Safety model
+## Как обеспечивается безопасность
 
-- WB access is read-only.
-- Ozon reads and writes are separate commands.
-- No seller-portal cookies or browser automation.
-- Every API response is archived as a new immutable run with provenance.
-- Upload is disabled unless the plan validates, its hash is approved, the
-  exact confirmation is provided, and a temporary write guard is enabled.
-- The first pilot sends only one product and does not set stock or delete data.
+- Доступ к WB используется только для чтения.
+- Чтение Ozon и запись в Ozon разделены на разные команды.
+- Cookies кабинетов и автоматизация браузера не используются.
+- Каждый ответ API сохраняется как новый неизменяемый запуск с источником,
+  временем запроса, HTTP-статусом и контрольной суммой.
+- Загрузка заблокирована, пока план не пройдёт проверку, его хеш не будет
+  отдельно подтверждён и не будет передана точная строка подтверждения.
+- Первый пилот отправляет только один товар, не меняет остатки и ничего не
+  удаляет.
 
-See [architecture](docs/architecture.md), [credential setup](docs/credentials.md),
-and the required [brand/VAT/country/TN VED checks](docs/product-fields.md).
+Дополнительные документы:
 
-## Install
+- [архитектура и разделение операций](docs/architecture.md);
+- [получение и настройка ключей](docs/credentials.md);
+- [бренд, НДС, страна производства и ТН ВЭД](docs/product-fields.md);
+- [правила работы с секретами](SECURITY.md).
+
+## Установка
 
 ```bash
 python -m venv .venv
@@ -32,9 +39,10 @@ cp .env.example .env
 chmod 600 .env
 ```
 
-Fill `.env` with a WB Content token and the Ozon Seller Client ID/API key.
+Заполните локальный `.env`: добавьте токен WB с правом чтения контента и пару
+Seller `Client ID + Api-Key` из собственного кабинета Ozon.
 
-## 1. Read one WB card
+## 1. Получить карточку из WB
 
 ```bash
 PYTHONPATH=src python scripts/wb_cards.py \
@@ -43,11 +51,12 @@ PYTHONPATH=src python scripts/wb_cards.py \
   --output data/marts/wb-card.json
 ```
 
-The collector uses the official `POST /content/v2/get/cards/list` endpoint,
-paginates safely, and records each raw page. It refuses to overwrite the
-requested output file.
+Сборщик использует официальный метод
+`POST /content/v2/get/cards/list`, безопасно обрабатывает пагинацию и сохраняет
+каждую исходную страницу ответа. Существующий выходной файл не
+перезаписывается.
 
-## 2. Create a canonical local card
+## 2. Создать локальную каноническую карточку
 
 ```bash
 PYTHONPATH=src python scripts/ozon_prepare.py extract-wb \
@@ -56,11 +65,17 @@ PYTHONPATH=src python scripts/ozon_prepare.py extract-wb \
   --output data/marts/canonical.json
 ```
 
-## 3. Discover the correct Ozon category
+## 3. Подобрать категорию Ozon
+
+Сначала проверьте ключ Ozon без изменения данных:
 
 ```bash
 PYTHONPATH=src python scripts/ozon_read.py auth-check
+```
 
+Получите дерево категорий и список кандидатов:
+
+```bash
 PYTHONPATH=src python scripts/ozon_read.py categories-fetch \
   --output data/marts/ozon-categories.json
 
@@ -72,10 +87,11 @@ PYTHONPATH=src python scripts/ozon_prepare.py categories-suggest \
   --output data/marts/category-suggestions.json
 ```
 
-The suggestion is not an authorization to publish. Confirm the exact Ozon
-category and type because they determine mandatory attributes.
+Результат является подсказкой, а не разрешением на публикацию. Категорию и тип
+Ozon необходимо подтвердить вручную: от них зависят обязательные
+характеристики.
 
-## 4. Fetch attributes and dictionaries
+## 4. Получить характеристики и справочники
 
 ```bash
 PYTHONPATH=src python scripts/ozon_read.py attributes-fetch \
@@ -84,10 +100,11 @@ PYTHONPATH=src python scripts/ozon_read.py attributes-fetch \
   --output data/marts/attributes.json
 ```
 
-Review required attributes, especially brand, country, marking, and TN VED.
-Use current dictionary IDs; do not invent values.
+Проверьте все обязательные характеристики, особенно бренд, страну
+производства, маркировку и ТН ВЭД. Используйте только актуальные значения и ID
+из справочника Ozon — не придумывайте их.
 
-## 5. Prepare images
+## 5. Подготовить изображения
 
 ```bash
 PYTHONPATH=src python scripts/ozon_prepare.py media-prepare \
@@ -96,24 +113,26 @@ PYTHONPATH=src python scripts/ozon_prepare.py media-prepare \
   --public-base-url https://cdn.example.com/ozon-migration
 ```
 
-Upload the generated JPEG directory to the matching public URL, then verify
-every URL without authentication.
+Скрипт скачает изображения WB в WebP, проверит их и преобразует в JPEG.
+Загрузите созданный каталог в собственное публичное S3/CDN-хранилище по
+указанному пути. Каждая итоговая ссылка должна открываться без cookies и
+авторизации.
 
-## 6. Add verified overrides
+## 6. Добавить подтверждённые значения
 
-Copy `config/ozon/product-overrides.example.json` to a file under `data/marts/`
-and fill in:
+Скопируйте `config/ozon/product-overrides.example.json` в каталог
+`data/marts/` и заполните:
 
-- price and the seller's VAT treatment;
-- real packaged dimensions and weight;
-- brand (`Нет бренда` only when true);
-- country shown on the product/packaging;
-- mandatory Ozon attribute dictionary values, including TN VED when required;
-- compliance review result.
+- цену и подтверждённый налоговый режим продавца;
+- реальные размеры и вес товара в упаковке;
+- бренд — `Нет бренда` только при фактическом отсутствии бренда;
+- страну, указанную на товаре или упаковке;
+- обязательные значения справочников Ozon, включая ТН ВЭД;
+- результат проверки документов и ограничений.
 
-All files under `data/` are ignored by Git.
+Все файлы внутри `data/` исключены из Git.
 
-## 7. Build and inspect a dry-run
+## 7. Построить и проверить план
 
 ```bash
 PYTHONPATH=src python scripts/ozon_prepare.py prepare \
@@ -122,15 +141,16 @@ PYTHONPATH=src python scripts/ozon_prepare.py prepare \
   --attributes data/marts/attributes.json \
   --category-id CATEGORY_ID \
   --type-id TYPE_ID \
-  --type-name "CONFIRMED TYPE" \
+  --type-name "ПОДТВЕРЖДЁННЫЙ ТИП" \
   --media-map data/marts/media/MEDIA_RUN/media-url-map.json \
   --overrides data/marts/overrides.json
 ```
 
-The command prints the plan location, blockers, warnings, and the exact
-approval string. A blocked or manual-review plan cannot be approved.
+Команда напечатает путь к плану, блокирующие ошибки, предупреждения и точную
+строку подтверждения. План со статусом `blocked` или `manual_review`
+подтвердить нельзя.
 
-## 8. Approve and upload one card
+## 8. Подтвердить и загрузить одну карточку
 
 ```bash
 PYTHONPATH=src python scripts/ozon_prepare.py approve \
@@ -138,8 +158,9 @@ PYTHONPATH=src python scripts/ozon_prepare.py approve \
   --confirm "APPROVE:PLAN_ID:HASH_PREFIX"
 ```
 
-Switch to the dedicated Ozon product-writer key and run `auth-check`. Only for
-the approved command:
+Переключитесь на отдельный Ozon Seller API-ключ с правом импорта товаров и
+снова выполните `auth-check`. Только для одной утверждённой команды включите
+защиту записи:
 
 ```bash
 export OZON_ENABLE_WRITES=UPLOAD_APPROVED_PLANS
@@ -152,18 +173,19 @@ PYTHONPATH=src python scripts/ozon_upload.py upload \
 unset OZON_ENABLE_WRITES
 ```
 
-Poll the task and inspect moderation:
+Проверьте задачу импорта и результат модерации:
 
 ```bash
 PYTHONPATH=src python scripts/ozon_read.py poll --task-id TASK_ID
 PYTHONPATH=src python scripts/ozon_read.py product-check --offer-id OFFER_ID
 ```
 
-## Validation
+## Проверка проекта
 
 ```bash
-python -m unittest discover -s tests -v
+PYTHONPATH=src python -m unittest discover -s tests -v
 ```
 
-The repository is public source code but no license to copy, modify, or
-redistribute is granted until the owner adds an explicit license.
+Репозиторий опубликован открыто, но право копирования, изменения и
+распространения кода не предоставляется, пока владелец не добавит отдельную
+лицензию.

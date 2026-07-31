@@ -1,14 +1,19 @@
-# Security
+# Безопасность
 
-Never add API tokens, cookies, OAuth codes, client secrets, private keys,
-seller exports, or real marketplace responses to commits, issues, pull
-requests, or CI logs.
+Не добавляйте API-токены, cookies, OAuth-коды, client secrets, приватные ключи,
+выгрузки продавца или реальные ответы маркетплейсов в коммиты, issue, pull
+request и логи CI.
 
-Secrets are read only from a local `.env` file or a protected CI environment.
-The `.env` file and all generated data directories are excluded from Git.
+Секреты читаются только из локального `.env` или защищённого окружения CI.
+Файл `.env` и все каталоги с полученными данными исключены из Git.
 
-If a credential may have been exposed, revoke it in the marketplace cabinet,
-create a replacement with minimal permissions, and inspect Git history and CI
-logs. Deleting the value in a later commit is not sufficient.
+Если ключ мог быть раскрыт:
 
-Report vulnerabilities to the repository owner through a private channel.
+1. Немедленно отзовите его в кабинете маркетплейса.
+2. Создайте новый ключ с минимальными правами.
+3. Проверьте историю Git и логи CI.
+4. Обновите только локальный `.env`.
+
+Удаление значения в последующем коммите не устраняет утечку. О проблемах,
+которые могут привести к раскрытию секретов или несанкционированной записи,
+сообщайте владельцу репозитория приватным каналом.
