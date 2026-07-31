@@ -35,8 +35,8 @@ class OzonMediaPreparer:
         nm_id = int(product["source"]["external_id"])
         target = (
             self.data_root
-            / "marts"
-            / "ozon_migration"
+            / "operations"
+            / "migrations"
             / "media"
             / str(nm_id)
             / datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")

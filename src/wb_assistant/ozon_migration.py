@@ -864,7 +864,7 @@ def build_migration_plan(
 
 
 def save_plan(result: MigrationPlanResult, data_root: Path) -> Path:
-    directory = data_root / "marts" / "ozon_migration" / result.plan["plan_id"]
+    directory = data_root / "operations" / "migrations" / result.plan["plan_id"]
     directory.mkdir(parents=True, exist_ok=False)
     path = directory / "migration-plan.json"
     path.write_bytes(canonical_json(result.plan) + b"\n")

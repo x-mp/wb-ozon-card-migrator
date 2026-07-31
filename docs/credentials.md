@@ -31,7 +31,7 @@ WB принимает сам токен в заголовке `Authorization`, �
 PYTHONPATH=src python scripts/wb_cards.py \
   --nm-id WB_NM_ID \
   --account main \
-  --output data/marts/wb-card.json
+  --output data/operations/migrations/wb-card.json
 ```
 
 ## 2. Ключ собственного кабинета Ozon

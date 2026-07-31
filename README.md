@@ -1,5 +1,10 @@
 # Миграция карточек Wildberries → Ozon
 
+Проект входит в общую Marketplace Platform. Он использует единый внешний
+`MARKETPLACE_DATA_ROOT`, читает raw/normalized через контракты
+`marketplace-data-skills` и записывает планы, подтверждения и результаты только
+в `operations/migrations/`. Данные и ключи не хранятся в Git.
+
 Безопасный набор Python-скриптов для переноса принадлежащей продавцу карточки
 товара из кабинета Wildberries в собственный кабинет Ozon через официальные
 API маркетплейсов.
@@ -48,7 +53,7 @@ Seller `Client ID + Api-Key` из собственного кабинета Ozon
 PYTHONPATH=src python scripts/wb_cards.py \
   --nm-id WB_NM_ID \
   --account main \
-  --output data/marts/wb-card.json
+  --output data/operations/migrations/wb-card.json
 ```
 
 Сборщик использует официальный метод
@@ -60,9 +65,9 @@ PYTHONPATH=src python scripts/wb_cards.py \
 
 ```bash
 PYTHONPATH=src python scripts/ozon_prepare.py extract-wb \
-  --input data/marts/wb-card.json \
+  --input data/operations/migrations/wb-card.json \
   --nm-id WB_NM_ID \
-  --output data/marts/canonical.json
+  --output data/operations/migrations/canonical.json
 ```
 
 ## 3. Подобрать категорию Ozon
@@ -77,14 +82,14 @@ PYTHONPATH=src python scripts/ozon_read.py auth-check
 
 ```bash
 PYTHONPATH=src python scripts/ozon_read.py categories-fetch \
-  --output data/marts/ozon-categories.json
+  --output data/operations/migrations/ozon-categories.json
 
 PYTHONPATH=src python scripts/ozon_prepare.py categories-suggest \
-  --canonical data/marts/canonical.json \
-  --tree data/marts/ozon-categories.json \
+  --canonical data/operations/migrations/canonical.json \
+  --tree data/operations/migrations/ozon-categories.json \
   --nm-id WB_NM_ID \
   --limit 10 \
-  --output data/marts/category-suggestions.json
+  --output data/operations/migrations/category-suggestions.json
 ```
 
 Результат является подсказкой, а не разрешением на публикацию. Категорию и тип
@@ -97,7 +102,7 @@ Ozon необходимо подтвердить вручную: от них з�
 PYTHONPATH=src python scripts/ozon_read.py attributes-fetch \
   --category-id CATEGORY_ID \
   --type-id TYPE_ID \
-  --output data/marts/attributes.json
+  --output data/operations/migrations/attributes.json
 ```
 
 Проверьте все обязательные характеристики, особенно бренд, страну
@@ -108,7 +113,7 @@ PYTHONPATH=src python scripts/ozon_read.py attributes-fetch \
 
 ```bash
 PYTHONPATH=src python scripts/ozon_prepare.py media-prepare \
-  --canonical data/marts/canonical.json \
+  --canonical data/operations/migrations/canonical.json \
   --nm-id WB_NM_ID \
   --public-base-url https://cdn.example.com/ozon-migration
 ```
@@ -122,7 +127,7 @@ VPN и авторизации.
 ## 6. Добавить подтверждённые значения
 
 Скопируйте `config/ozon/product-overrides.example.json` в каталог
-`data/marts/` и заполните:
+`data/operations/migrations/` и заполните:
 
 - цену и подтверждённый налоговый режим продавца;
 - реальные размеры и вес товара в упаковке;
@@ -137,14 +142,14 @@ VPN и авторизации.
 
 ```bash
 PYTHONPATH=src python scripts/ozon_prepare.py prepare \
-  --canonical data/marts/canonical.json \
+  --canonical data/operations/migrations/canonical.json \
   --nm-id WB_NM_ID \
-  --attributes data/marts/attributes.json \
+  --attributes data/operations/migrations/attributes.json \
   --category-id CATEGORY_ID \
   --type-id TYPE_ID \
   --type-name "ПОДТВЕРЖДЁННЫЙ ТИП" \
-  --media-map data/marts/media/MEDIA_RUN/media-url-map.json \
-  --overrides data/marts/overrides.json
+  --media-map data/operations/migrations/media/MEDIA_RUN/media-url-map.json \
+  --overrides data/operations/migrations/overrides.json
 ```
 
 Команда напечатает путь к плану, блокирующие ошибки, предупреждения и точную
@@ -155,7 +160,7 @@ PYTHONPATH=src python scripts/ozon_prepare.py prepare \
 
 ```bash
 PYTHONPATH=src python scripts/ozon_prepare.py approve \
-  --plan data/marts/PLAN_ID/migration-plan.json \
+  --plan data/operations/migrations/PLAN_ID/migration-plan.json \
   --confirm "APPROVE:PLAN_ID:HASH_PREFIX"
 ```
 
@@ -167,8 +172,8 @@ PYTHONPATH=src python scripts/ozon_prepare.py approve \
 export OZON_ENABLE_WRITES=UPLOAD_APPROVED_PLANS
 
 PYTHONPATH=src python scripts/ozon_upload.py upload \
-  --plan data/marts/PLAN_ID/migration-plan.json \
-  --approval data/marts/PLAN_ID/approval.json \
+  --plan data/operations/migrations/PLAN_ID/migration-plan.json \
+  --approval data/operations/migrations/PLAN_ID/approval.json \
   --confirm "UPLOAD:PLAN_ID:HASH_PREFIX"
 
 unset OZON_ENABLE_WRITES

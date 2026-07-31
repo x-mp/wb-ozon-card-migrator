@@ -43,7 +43,10 @@ def _timestamp() -> str:
 
 
 def _data_root() -> Path:
-    return Path(os.getenv("WB_DATA_DIR", "data"))
+    return Path(
+        os.getenv("MARKETPLACE_DATA_ROOT")
+        or os.getenv("WB_DATA_DIR", "data")
+    )
 
 
 def _client() -> OzonSellerClient:
@@ -139,8 +142,17 @@ def build_parser() -> argparse.ArgumentParser:
     prepare.add_argument("--type-name", required=True)
     prepare.add_argument("--media-map", type=Path)
     prepare.add_argument("--overrides", type=Path)
-    prepare.add_argument("--source-account", default="main")
-    prepare.add_argument("--target-account", default=os.getenv("OZON_ACCOUNT_ID", "main"))
+    prepare.add_argument(
+        "--source-account",
+        default=os.getenv("MARKETPLACE_SOURCE_ACCOUNT_ID", "wb-main"),
+    )
+    prepare.add_argument(
+        "--target-account",
+        default=os.getenv(
+            "MARKETPLACE_TARGET_ACCOUNT_ID",
+            os.getenv("OZON_ACCOUNT_ID", "ozon-main"),
+        ),
+    )
 
     approve = commands.add_parser(
         "approve", help="Approve an error-free immutable migration plan"
@@ -232,8 +244,8 @@ def main(argv: list[str] | None = None) -> int:
             call = _client().read("/v1/description-category/tree", {"language": "RU"})
             output = args.output or (
                 _data_root()
-                / "marts"
-                / "ozon_migration"
+                / "operations"
+                / "migrations"
                 / "discovery"
                 / f"categories-{_timestamp()}.json"
             )
@@ -390,8 +402,8 @@ def main(argv: list[str] | None = None) -> int:
                 dictionaries[str(attribute_id)] = values
             output = args.output or (
                 _data_root()
-                / "marts"
-                / "ozon_migration"
+                / "operations"
+                / "migrations"
                 / "dictionaries"
                 / f"{category_id}-{type_id}-{_timestamp()}.json"
             )

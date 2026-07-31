@@ -13,6 +13,9 @@ authors = [{name = "x-mp"}]
 dependencies = []
 
 [project.optional-dependencies]
+platform = [
+  "marketplace-data-skills @ git+https://github.com/x-mp/marketplace-data-skills.git@v0.2.0"
+]
 media = ["Pillow>=10,<12"]
 dev = ["ruff>=0.5"]
 
