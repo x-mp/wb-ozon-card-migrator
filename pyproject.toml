@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wb-ozon-card-migrator"
+version = "0.1.0"
+description = "Safe, auditable migration of seller-owned product cards from Wildberries to Ozon"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "All rights reserved"}
+authors = [{name = "x-mp"}]
+dependencies = []
+
+[project.optional-dependencies]
+media = ["Pillow>=10,<12"]
+dev = ["ruff>=0.5"]
+
+[project.scripts]
+ozon-migrate = "wb_assistant.ozon_cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"

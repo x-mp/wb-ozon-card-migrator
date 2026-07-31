@@ -1,0 +1,120 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-07-30",
+  "status": "verified_non_executable_registry",
+  "base_url": "https://api-seller.ozon.ru",
+  "official_docs": "https://docs.ozon.ru/api/seller/",
+  "official_schema": {
+    "path": "openapi/ozon/ozon-openapi-export-2026-07-30T11-06-35-360Z.json",
+    "openapi_version": "3.0.0",
+    "document_title": "Документация Ozon Seller API",
+    "document_version": "2.1",
+    "method_count": 459,
+    "declared_tag_count": 72,
+    "tags_used_by_operations": 56,
+    "sha256": "cf77248d4a0267c17648ad1b46b7ed9d767e555793a383f144b6feb54219b9c0"
+  },
+  "rule": "Only methods marked official-schema-verified may be implemented. Write modes remain disabled by policy.",
+  "methods": [
+    {
+      "id": "description_category_tree",
+      "method": "POST",
+      "path": "/v1/description-category/tree",
+      "mode": "read",
+      "purpose": "Current description categories and types",
+      "verification": "official-schema-verified"
+    },
+    {
+      "id": "description_category_attributes",
+      "method": "POST",
+      "path": "/v1/description-category/attribute",
+      "mode": "read",
+      "purpose": "Attribute requirements for selected categories",
+      "verification": "official-schema-verified"
+    },
+    {
+      "id": "description_category_attribute_values",
+      "method": "POST",
+      "path": "/v1/description-category/attribute/values",
+      "mode": "read",
+      "purpose": "Dictionary values with pagination",
+      "verification": "official-schema-verified"
+    },
+    {
+      "id": "product_limits",
+      "method": "POST",
+      "path": "/v4/product/info/limit",
+      "mode": "read",
+      "purpose": "Product creation limits",
+      "verification": "official-schema-verified"
+    },
+    {
+      "id": "product_list",
+      "method": "POST",
+      "path": "/v3/product/list",
+      "mode": "read",
+      "purpose": "Existing products and offer IDs",
+      "verification": "official-schema-verified"
+    },
+    {
+      "id": "product_info_list",
+      "method": "POST",
+      "path": "/v3/product/info/list",
+      "mode": "read",
+      "purpose": "Detailed product information",
+      "verification": "official-schema-verified"
+    },
+    {
+      "id": "product_info_attributes",
+      "method": "POST",
+      "path": "/v4/product/info/attributes",
+      "mode": "read",
+      "purpose": "Published product attributes",
+      "verification": "official-schema-verified"
+    },
+    {
+      "id": "product_import",
+      "method": "POST",
+      "path": "/v3/product/import",
+      "mode": "write",
+      "purpose": "Create or update products asynchronously",
+      "verification": "official-schema-verified",
+      "enabled": false
+    },
+    {
+      "id": "product_import_info",
+      "method": "POST",
+      "path": "/v1/product/import/info",
+      "mode": "read",
+      "purpose": "Poll asynchronous import task",
+      "verification": "official-schema-verified"
+    },
+    {
+      "id": "product_pictures_import",
+      "method": "POST",
+      "path": "/v1/product/pictures/import",
+      "mode": "write",
+      "purpose": "Update product pictures",
+      "verification": "official-schema-verified",
+      "enabled": false
+    },
+    {
+      "id": "product_prices_update",
+      "method": "POST",
+      "path": "/v1/product/import/prices",
+      "mode": "write_commercial",
+      "purpose": "Update prices after catalog approval",
+      "verification": "official-schema-verified",
+      "enabled": false
+    },
+    {
+      "id": "product_stocks_update",
+      "method": "POST",
+      "path": "/v2/products/stocks",
+      "mode": "write_commercial",
+      "purpose": "Update stocks for an approved Ozon warehouse",
+      "verification": "official-schema-verified",
+      "enabled": false
+    }
+  ]
+}

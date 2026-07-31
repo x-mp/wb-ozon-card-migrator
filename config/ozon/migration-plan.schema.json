@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.wb-assistant/schemas/ozon-migration-plan-v1.json",
+  "title": "Ozon migration plan",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "plan_id",
+    "created_at",
+    "source_account_id",
+    "target_account_id",
+    "official_api_schema_hash",
+    "mode",
+    "approved",
+    "items"
+  ],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "plan_id": { "type": "string", "minLength": 1 },
+    "created_at": { "type": "string", "format": "date-time" },
+    "source_account_id": { "type": "string", "minLength": 1 },
+    "target_account_id": { "type": "string", "minLength": 1 },
+    "official_api_schema_hash": { "type": "string", "minLength": 1 },
+    "dictionary_snapshot_id": { "type": "string" },
+    "mode": { "enum": ["dry_run", "catalog_write", "commercial_write"] },
+    "approved": { "const": false },
+    "approval": { "type": ["object", "null"] },
+    "items": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "product_uid",
+          "offer_id",
+          "operation",
+          "payload_hash",
+          "validation_status"
+        ],
+        "properties": {
+          "product_uid": { "type": "string" },
+          "offer_id": { "type": "string" },
+          "operation": { "enum": ["create", "update", "create_or_update"] },
+          "payload_path": { "type": "string" },
+          "payload_hash": { "type": "string" },
+          "validation_status": { "enum": ["passed", "blocked", "manual_review"] },
+          "blocking_errors": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  }
+}

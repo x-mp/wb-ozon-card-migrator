@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "methods": [
+    {
+      "id": "content.cards.list",
+      "source": "seller_api",
+      "entity": "product_cards",
+      "description": "Full seller product cards with immutable page-level archival",
+      "http_method": "POST",
+      "read_only": true,
+      "base_url": "https://content-api.wildberries.ru",
+      "path": "/content/v2/get/cards/list",
+      "required_params": ["nm_id"],
+      "auth_env": "WB_API_TOKEN",
+      "rate_limit": "100 requests/minute; 600 ms interval; burst 5",
+      "docs": "https://dev.wildberries.ru/docs/openapi/work-with-products"
+    },
+    {
+      "id": "prices.goods.list",
+      "source": "seller_api",
+      "entity": "product_prices",
+      "description": "Seller product price and discount by WB nmID",
+      "http_method": "GET",
+      "read_only": true,
+      "base_url": "https://discounts-prices-api.wildberries.ru",
+      "path": "/api/v2/list/goods/filter",
+      "required_params": ["filterNmID", "limit"],
+      "auth_env": "WB_API_TOKEN",
+      "rate_limit": "Check the current official documentation before scheduling",
+      "docs": "https://dev.wildberries.ru/docs/openapi/work-with-products"
+    }
+  ]
+}

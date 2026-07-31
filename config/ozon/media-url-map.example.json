@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "items": [
+    {
+      "wb_nm_id": 123456789,
+      "source_url": "https://basket.example/products/123456789/1.webp",
+      "ozon_public_url": "https://cdn.example.com/products/123456789/01.jpg",
+      "sha256": "replace-with-sha256-of-jpeg"
+    }
+  ]
+}

@@ -1,0 +1,127 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.wb-assistant/schemas/ozon-canonical-product-v1.json",
+  "title": "Canonical product for WB to Ozon migration",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "product_uid",
+    "source",
+    "identity",
+    "content",
+    "physical",
+    "media",
+    "compliance"
+  ],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "product_uid": { "type": "string", "minLength": 1 },
+    "source": {
+      "type": "object",
+      "required": ["marketplace", "account_id", "external_id", "snapshot_id"],
+      "properties": {
+        "marketplace": { "const": "wildberries" },
+        "account_id": { "type": "string" },
+        "external_id": { "type": "integer", "minimum": 1 },
+        "snapshot_id": { "type": "string" },
+        "captured_at": { "type": "string", "format": "date-time" }
+      },
+      "additionalProperties": false
+    },
+    "identity": {
+      "type": "object",
+      "required": ["offer_id"],
+      "properties": {
+        "offer_id": { "type": "string", "minLength": 1 },
+        "barcodes": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        },
+        "brand": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false
+    },
+    "content": {
+      "type": "object",
+      "required": ["name", "description", "source_category", "attributes"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "description": { "type": "string" },
+        "source_category": { "type": "string", "minLength": 1 },
+        "target_category_id": { "type": ["integer", "null"] },
+        "attributes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "value", "confidence"],
+            "properties": {
+              "name": { "type": "string" },
+              "value": {},
+              "unit": { "type": ["string", "null"] },
+              "target_attribute_id": { "type": ["integer", "null"] },
+              "confidence": {
+                "enum": ["exact", "dictionary", "transformed", "suggested", "missing"]
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "physical": {
+      "type": "object",
+      "required": ["dimension_unit", "weight_unit"],
+      "properties": {
+        "length": { "type": ["number", "null"], "exclusiveMinimum": 0 },
+        "width": { "type": ["number", "null"], "exclusiveMinimum": 0 },
+        "height": { "type": ["number", "null"], "exclusiveMinimum": 0 },
+        "weight": { "type": ["number", "null"], "exclusiveMinimum": 0 },
+        "dimension_unit": { "type": "string" },
+        "weight_unit": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "media": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["asset_id", "kind", "position", "checksum"],
+        "properties": {
+          "asset_id": { "type": "string" },
+          "kind": { "enum": ["image", "video", "video_cover"] },
+          "position": { "type": "integer", "minimum": 0 },
+          "role": { "enum": ["primary", "gallery", "variant", "other"] },
+          "local_path": { "type": ["string", "null"] },
+          "source_url": { "type": ["string", "null"], "format": "uri" },
+          "checksum": { "type": "string", "minLength": 1 },
+          "width": { "type": ["integer", "null"], "minimum": 1 },
+          "height": { "type": ["integer", "null"], "minimum": 1 }
+        },
+        "additionalProperties": false
+      }
+    },
+    "commercial": {
+      "type": "object",
+      "properties": {
+        "currency": { "type": "string" },
+        "price": { "type": ["number", "null"], "minimum": 0 },
+        "vat": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false
+    },
+    "compliance": {
+      "type": "object",
+      "required": ["manual_review", "documents"],
+      "properties": {
+        "manual_review": { "type": "boolean" },
+        "reasons": { "type": "array", "items": { "type": "string" } },
+        "documents": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    }
+  }
+}
+

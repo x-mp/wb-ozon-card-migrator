@@ -1,0 +1,38 @@
+# Secrets
+.env
+.env.*
+!.env.example
+secrets/
+cookies/
+keys/
+*.pem
+*.key
+*.p12
+
+# Seller data and generated artifacts
+data/raw/**
+data/normalized/**
+data/marts/**
+data/tmp/**
+data/catalog.sqlite*
+!data/raw/.gitkeep
+!data/normalized/.gitkeep
+!data/marts/.gitkeep
+!data/tmp/.gitkeep
+
+# Python and local tools
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.venv/
+venv/
+dist/
+build/
+*.egg-info/
+
+# Editors and operating systems
+.idea/
+.vscode/
+.DS_Store

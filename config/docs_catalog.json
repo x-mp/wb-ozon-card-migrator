@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-07-31T00:00:00Z",
+  "source_files": [],
+  "page_count": 1,
+  "method_count": 1,
+  "pages": [],
+  "methods": [
+    {
+      "id": "post-content-v2-get-cards-list",
+      "title": "Список карточек товаров",
+      "http_method": "POST",
+      "path": "/content/v2/get/cards/list",
+      "production_urls": [
+        "https://content-api.wildberries.ru/content/v2/get/cards/list"
+      ],
+      "sandbox_urls": [
+        "https://content-api-sandbox.wildberries.ru/content/v2/get/cards/list"
+      ],
+      "docs_page": "https://dev.wildberries.ru/docs/openapi/work-with-products",
+      "docs_title": "Работа с товарами (items)"
+    }
+  ],
+  "source_errors": []
+}

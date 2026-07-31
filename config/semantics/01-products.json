@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "methods": [
+    {
+      "domain": "products",
+      "http_method": "POST",
+      "path": "/content/v2/get/cards/list",
+      "semantics": "query",
+      "module": "cards"
+    }
+  ]
+}

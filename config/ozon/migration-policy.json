@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "mode": "research",
+  "writes_enabled": false,
+  "commercial_writes_enabled": false,
+  "delete_operations_enabled": false,
+  "require_official_schema": true,
+  "require_schema_hash": true,
+  "require_human_approval": true,
+  "require_existing_offer_lookup": true,
+  "max_products_per_first_write": 1,
+  "prices_in_catalog_creation": true,
+  "stocks_in_catalog_creation": false,
+  "retry": {
+    "retry_429": true,
+    "respect_retry_after": true,
+    "retry_5xx": true,
+    "max_attempts": 4,
+    "retry_401_403": false,
+    "retry_400_422": false
+  },
+  "blocking_mapping_confidence": [
+    "suggested",
+    "missing"
+  ],
+  "manual_review": [
+    "category",
+    "brand",
+    "certificates",
+    "restricted_goods",
+    "personalized_goods",
+    "vat",
+    "barcodes",
+    "variant_grouping"
+  ],
+  "secrets": {
+    "allowed_sources": [
+      "environment"
+    ],
+    "log_headers": false,
+    "log_credentials": false
+  }
+}
