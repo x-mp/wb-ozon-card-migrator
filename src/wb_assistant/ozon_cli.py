@@ -20,7 +20,7 @@ from .ozon_migration import (
     suggest_ozon_categories,
     verify_approval,
 )
-from .ozon_media import AutoSupplyMediaUploader, OzonMediaPreparer
+from .ozon_media import OzonMediaPreparer
 from .ozon_schema import canonical_json
 from .storage import ArtifactStore
 
@@ -119,20 +119,6 @@ def build_parser() -> argparse.ArgumentParser:
     media.add_argument("--nm-id", type=int)
     media.add_argument("--public-base-url")
     media.add_argument("--jpeg-quality", type=int, default=92)
-
-    media_upload = commands.add_parser(
-        "media-upload-autosupply",
-        help="Upload prepared JPG/PNG files to the AutoSupply media gateway",
-    )
-    media_upload.add_argument("--media-map", type=Path, required=True)
-    media_upload.add_argument("--output", type=Path, required=True)
-    media_upload.add_argument(
-        "--endpoint",
-        default=os.getenv(
-            "AUTOSUPPLY_MEDIA_ENDPOINT",
-            "https://autosupplybot.ru/api/v1/media/upload/",
-        ),
-    )
 
     attributes = commands.add_parser(
         "attributes-fetch",
@@ -352,23 +338,6 @@ def main(argv: list[str] | None = None) -> int:
                 jpeg_quality=args.jpeg_quality,
             )
             print(json.dumps(result, ensure_ascii=False, indent=2))
-            return 0 if result["ready_for_ozon"] else 3
-
-        if args.command == "media-upload-autosupply":
-            result = AutoSupplyMediaUploader.from_environment(
-                args.endpoint,
-                timeout=float(os.getenv("OZON_HTTP_TIMEOUT_SECONDS", "30")),
-            ).upload_manifest(args.media_map, args.output)
-            print(
-                json.dumps(
-                    {
-                        "output": str(args.output),
-                        "items": len(result["items"]),
-                        "ready_for_ozon": result["ready_for_ozon"],
-                    },
-                    ensure_ascii=False,
-                )
-            )
             return 0 if result["ready_for_ozon"] else 3
 
         if args.command == "attributes-fetch":

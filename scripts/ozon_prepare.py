@@ -8,7 +8,6 @@ ALLOWED = {
     "extract-wb",
     "categories-suggest",
     "media-prepare",
-    "media-upload-autosupply",
     "prepare",
     "approve",
 }

@@ -114,35 +114,10 @@ PYTHONPATH=src python scripts/ozon_prepare.py media-prepare \
 ```
 
 Скрипт скачает изображения WB в WebP, проверит их и преобразует в JPEG.
-
-### Вариант A: шлюз AutoSupply
-
-Получите отдельный AutoSupply API-токен со scope `media:write` и сохраните его
-в локальном файле с правами `600`. Укажите путь в `.env`:
-
-```dotenv
-AUTOSUPPLY_MEDIA_TOKEN_FILE=/secure/path/autosupply-media-token
-```
-
-Загрузите подготовленные файлы:
-
-```bash
-PYTHONPATH=src python scripts/ozon_prepare.py media-upload-autosupply \
-  --media-map data/marts/media/MEDIA_RUN/media-url-map.json \
-  --output data/marts/media/MEDIA_RUN/media-url-map-autosupply.json
-```
-
-Авторизованный маршрут загрузки:
-`https://autosupplybot.ru/api/v1/media/upload/`. В итоговой карте будут
-публичные неизменяемые ссылки вида
-`https://autosupplybot.ru/api/v1/media/public/<sha256>.jpg`, которые Ozon может
-скачать без авторизации. API-токен в карту не записывается.
-
-### Вариант B: собственное хранилище
-
-Загрузите созданный каталог в публичное S3/CDN-хранилище по пути из
-`--public-base-url`. Каждая итоговая ссылка должна открываться без cookies и
-авторизации.
+Загрузите созданный каталог на свой сервер или в S3/CDN по пути из
+`--public-base-url`. На сервере необходимо настроить HTTPS с действительным
+сертификатом. Каждая итоговая ссылка должна быть доступна Ozon без cookies,
+VPN и авторизации.
 
 ## 6. Добавить подтверждённые значения
 
