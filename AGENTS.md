@@ -7,4 +7,6 @@
 - После проверенного результата сохранять краткую запись со ссылками на
   `run_id`, `plan_id` и commit; аудит операции остаётся в `operations/migrations`.
 - Не сохранять в память полный ответ API, traceback с локальными переменными или чат.
-
+- Поддерживать `CHANGELOG.md`, `docs/architecture.md`, `RECOVERY.md` и
+  `COMMIT_POLICY.md`. Commit обязан содержать конкретный subject и body с
+  `Why`, `What`, `Verification`, `State`; бессодержательные сообщения запрещены.
